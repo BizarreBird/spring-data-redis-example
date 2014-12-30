@@ -1,0 +1,36 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+project.group = 'org.nivance'
+project.archivesBaseName = 'javaredis'
+project.version = '1.0.0'
+
+tasks.withType(Compile) { options.encoding = "UTF-8" }
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+	classifier = 'sources'
+	from sourceSets.main.allSource
+}
+
+artifacts {
+	archives sourcesJar
+}
+
+dependencies {
+//    compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+	compile group: 'org.springframework.data', name: 'spring-data-redis', version: '1.4.1.RELEASE'
+	compile group: 'org.springframework.boot', name: 'spring-boot', version: '1.2.0.RELEASE'
+	compile group: 'org.springframework.boot', name: 'spring-boot-autoconfigure', version: '1.2.0.RELEASE'
+	compile group: 'org.springframework.boot', name: 'spring-boot-starter-redis', version: '1.2.0.RELEASE'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+}
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+jar {
+	manifest {
+		attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
+	}
+}
+
