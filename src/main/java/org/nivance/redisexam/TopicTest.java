@@ -17,7 +17,7 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
 @EnableAutoConfiguration
 @Slf4j
-public class Topic extends RedisCommon {
+public class TopicTest extends RedisCommon {
 
 	@Bean
 	RedisMessageListenerContainer container(
@@ -45,7 +45,7 @@ public class Topic extends RedisCommon {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		ApplicationContext ctx = SpringApplication.run(Topic.class, args);
+		ApplicationContext ctx = SpringApplication.run(TopicTest.class, args);
 		StringRedisTemplate template = ctx.getBean(StringRedisTemplate.class);
 		CountDownLatch latch = ctx.getBean(CountDownLatch.class);
 		log.info("Sending message...");
