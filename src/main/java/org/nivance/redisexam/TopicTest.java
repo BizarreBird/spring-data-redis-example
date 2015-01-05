@@ -1,10 +1,9 @@
 package org.nivance.redisexam;
 
-import java.util.concurrent.CountDownLatch;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.ApplicationContext;
@@ -15,9 +14,15 @@ import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
+/**
+ * 可以启动多个RedisMessageListener监听同一个Topic，每个listener都会收到相同的消息。
+ * <p>
+ * 
+ */
 @EnableAutoConfiguration
 @Slf4j
 public class TopicTest extends RedisCommon {
+	private static String topicName = "Topic:chat";
 
 	@Bean
 	RedisMessageListenerContainer container(
@@ -25,7 +30,8 @@ public class TopicTest extends RedisCommon {
 			MessageListenerAdapter listenerAdapter) {
 		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
-		container.addMessageListener(listenerAdapter, new PatternTopic("chat"));
+		container.addMessageListener(listenerAdapter, new PatternTopic(topicName));
+		//container.addMessageListener(listenerAdapter, new ChannelTopic(topicName));
 		return container;
 	}
 
@@ -35,36 +41,27 @@ public class TopicTest extends RedisCommon {
 	}
 
 	@Bean
-	Receiver receiver(CountDownLatch latch) {
-		return new Receiver(latch);
-	}
-
-	@Bean
-	CountDownLatch latch() {
-		return new CountDownLatch(1);
+	Receiver receiver(@Value("Receiver-1") String name) {
+		return new Receiver(name);
 	}
 
 	public static void main(String[] args) throws InterruptedException {
+		log.info("-----------Starting Redis Topic testing-----------");
 		ApplicationContext ctx = SpringApplication.run(TopicTest.class, args);
 		StringRedisTemplate template = ctx.getBean(StringRedisTemplate.class);
-		CountDownLatch latch = ctx.getBean(CountDownLatch.class);
-		log.info("Sending message...");
-		template.convertAndSend("chat", "Hello from Redis!");
-		latch.await();
-		System.exit(0);
+		template.convertAndSend(topicName, "Hello from Redis!");
 	}
 
-	class Receiver {
-		private CountDownLatch latch;
+	static class Receiver {
+		private String name;
 
 		@Autowired
-		public Receiver(CountDownLatch latch) {
-			this.latch = latch;
+		public Receiver(String name) {
+			this.name = name;
 		}
 
 		public void receiveMessage(String message) {
-			log.info("Received <" + message + ">");
-			latch.countDown();
+			log.info(name + " received <" + message + ">");
 		}
 	}
 
